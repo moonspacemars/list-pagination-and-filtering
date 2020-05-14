@@ -2,47 +2,16 @@
 Treehouse Techdegree:
 FSJS project 2 - List Filter and Pagination
 ******************************************/
-   
-// Study guide for this project - https://drive.google.com/file/d/1OD1diUsTMdpfMDv677TfL1xO2CEkykSz/view?usp=sharing
 
-
-/*** 
-   Add your global variables that store the DOM elements you will 
-   need to reference and/or manipulate. 
-   
-   But be mindful of which variables should be global and which 
-   should be locally scoped to one of the two main functions you're 
-   going to create. A good general rule of thumb is if the variable 
-   will only be used inside of a function, then it can be locally 
-   scoped to that function.
-***/
 /**The students data group */
 const studentList = document.querySelector(".student-list").children;
 
 /**The number of students show on one page. */
 const itemsPerPage = 10;
 
-
-
-
-
-/*** 
-   Create the `showPage` function to hide all of the items in the 
-   list except for the ten you want to show.
-
-   Pro Tips: 
-     - Keep in mind that with a list of 54 students, the last page 
-       will only display four.
-     - Remember that the first student has an index of 0.
-     - Remember that a function `parameter` goes in the parens when 
-       you initially define the function, and it acts as a variable 
-       or a placeholder to represent the actual function `argument` 
-       that will be passed into the parens later when you call or 
-       "invoke" the function 
-***/
 /**
  * Displays students according to the page number.
- * @param {element} list - The list of all students.
+ * @param {element} list - The list of students.
  * @param {integer} page - The page to be displayed.
  */
 function showPage(list, page){
@@ -58,16 +27,24 @@ function showPage(list, page){
    }
 }
 
+/**
+ * Displays students that match with search input. 
+ * @param {element} list -  The list of students.
+ */
+function showSearchItem(list){
+   for(let i=0; i<list.length; i++){
+      if (list[i].className==="student-item cf match"){
+         list[i].style.display="";
+      }
+      else{
+         list[i].style.display="none";
+      }
+   } 
+}
 
-
-
-/*** 
-   Create the `appendPageLinks function` to generate, append, and add 
-   functionality to the pagination buttons.
-***/
 /**
  * Creates pagination buttons.
- * @param {element} list - The list of all students 
+ * @param {element} list - The list of students. 
  */
 function appendPageLinks(list){
    const pages=Math.ceil(list.length/itemsPerPage);
@@ -85,6 +62,8 @@ function appendPageLinks(list){
       }
       a.href="#";
       a.textContent = i;
+
+      /**page button listner*/
       a.addEventListener('click', (e)=>{
          if (e.target.tagName ==="A"){
             const groupA = document.querySelectorAll("li a");
@@ -92,14 +71,46 @@ function appendPageLinks(list){
                groupA[ai].className="";
             }
             a.className="active";
-            showPage(studentList, a.textContent);
+            showPage(list, a.textContent);
          }
       });
-
       li.appendChild(a);
       ul.appendChild(li);
    }
 }
+
+/**Creates search input and button. */
+function createSearchBar(){
+   const parentElement = document.querySelector(".page-header.cf");
+   const div = document.createElement("div");
+   div.className = "student-search";
+   const input = document.createElement("input");
+   input.id ="search-input";
+   input.placeholder = "Search for students...";
+   const button = document.createElement("button");
+   button.textContent = "Search";
+   button.id="submit";
+   div.appendChild(input);
+   div.appendChild(button);
+   parentElement.appendChild(div);
+}
+
+/**
+ * Searchs the names group that match with search input.
+ * @param {element} searchInput - The input element.
+ * @param {element} names - The group of students.
+ */
+function searchTool(searchInput, names){
+   if (searchInput.value.length !==0){
+     for(let i=0; i<names.length; i++){
+       names[i].classList.remove("match");     
+       const name=names[i].querySelector("h3").textContent;
+       if (name.indexOf(searchInput.value.toLowerCase()) >-1){
+         names[i].classList.add("match");
+       }
+     }
+   }
+} 
 
 /**Initialize: displays firt page when first loading */
 showPage(studentList,1);
@@ -107,10 +118,43 @@ showPage(studentList,1);
 /**Generates pagination buttons */
 appendPageLinks(studentList);
 
+/**Creates search input and button */
+createSearchBar();
 
+/**Search button element*/
+const search = document.querySelector("#search-input");
 
+/**Search input element */
+const submit = document.querySelector("#submit");
 
+/**Maintain html node when searching*/
+function searchExecute(){
+   searchTool(search, studentList);
+   showSearchItem(studentList);
+   const searchMatchGroup = document.querySelectorAll(".match");
+   const parentPage = document.querySelector(".page");
+   const pageElement = document.querySelector(".pagination"); 
+   parentPage.removeChild(pageElement);
+   const noResultTag = document.querySelector("h1");
+   if (noResultTag){
+      parentPage.removeChild(noResultTag);
+   }
+   appendPageLinks(searchMatchGroup);
+   showPage(searchMatchGroup,1);
+   if (searchMatchGroup.length ===0){
+      const h1 = document.createElement("h1");
+      h1.textContent="No results.";
+      parentPage.appendChild(h1);
+   }
 
+}
 
+/**Search button listner */
+submit.addEventListener('click',()=>{
+   searchExecute();
+});
 
-// Remember to delete the comments that came with this file, and replace them with your own code comments.
+/**Search input listner */
+search.addEventListener('keyup', () => {
+   searchExecute();
+ });
